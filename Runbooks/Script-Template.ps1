@@ -30,6 +30,7 @@ https://github.com/prehor/AzureAutomationRunbookTemplate
 #region Parameters
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseApprovedVerbs", "")]
+[CmdletBinding()]
 param (
 	[Parameter(Mandatory = $true)]
 	[String]$Example
@@ -118,10 +119,10 @@ function Login-AzureAutomation() {
 #endregion
 
 ###############################################################################
-### MAIN BODY #################################################################
+### MAIN ######################################################################
 ###############################################################################
 
-#region Body
+#region Main
 
 ### Open log ##################################################################
 $StartTimestamp = Get-Date

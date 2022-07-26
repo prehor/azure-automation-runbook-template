@@ -67,27 +67,64 @@ function Write-Log() {
 		[String]$Message,
 
 		[Parameter()]
+		[String[]]$Property,
+
+		[Parameter(ValueFromPipeline)]
 		[Object[]]$Arguments
 	)
 
-	# Format timestamp
-	$Timestamp = '{0}Z' -f (Get-Date -Format 's')
-	$Mesage = '{0} {1}' -f $Timestamp, $Message
-
-	# Format arguments
-	if ($null -ne $Arguments) {
-		$Message = $Mesage -f $Arguments
+	begin {
+		$Properties = $Property
 	}
 
-	# Always output verbose messages
-	$OldVerbosePreference = $VerbosePreference
-	$VerbosePreference = 'Continue'
+	process {
+		# Always output verbose messages
+		$Private:SavedVerbosePreference = $VerbosePreference
+		$VerbosePreference = 'Continue'
 
-	# Output message
-	Write-Verbose $Message
+		# Format timestamp
+		$Timestamp = '{0}Z' -f (Get-Date -Format 's')
+		$MessageWithTimestamp = '{0} {1}' -f $Timestamp, $Message
 
-	# Restore $VerbosePreference
-	$VerbosePreference = $OldVerbosePreference
+		# Format arguments
+		if ($null -eq $Properties) {
+			# $Arguments contains array of values
+			$Values = @()
+			foreach ($Argument in $Arguments) {
+				$Values += $_ | Out-String |
+				# Remove ANSI colors
+				ForEach-Object { $_ -replace '\e\[\d*;?\d+m','' }
+			}
+			Write-Verbose ($MessageWithTimestamp -f $Values)
+		} else {
+			# $Arguments contains array of objects with properties
+			foreach ($Argument in $Arguments) {
+				$Values = $()
+				# Convert hashtable to object
+				if ($Argument -is 'Hashtable') {
+					$Argument = [PSCustomObject]$Argument
+				}
+				$ArgumentProperties = $Argument.PSObject.Properties.Name
+				foreach ($Property in $Properties) {
+					$Values += if ($ArgumentProperties -contains $Property) {
+						if ($null -ne ($Value = $Argument.$_)) {
+							$Value | Out-String |
+							# Remove ANSI colors
+							ForEach-Object { $_ -replace '\e\[\d*;?\d+m','' }
+						} else {
+							'ENULL'
+						}
+					} else {
+						'ENONENT'
+					}
+				}
+				Write-Verbose ($MessageWithTimestamp -f $Values)
+			}
+		}
+
+		# Restore $VerbosePreference
+		$VerbosePreference = $Private:SavedVerbosePreference
+	}
 }
 
 ### Login-AzureAutomation #####################################################
@@ -107,13 +144,15 @@ function Login-AzureAutomation() {
 			$AzureContext = (Connect-AzAccount -Identity).Context
 
 			# Set and store context
-			Set-AzContext -Tenant $AzureContext.Tenant -SubscriptionId $AzureContext.Subscription -DefaultProfile $AzureContext | Format-List
+			Set-AzContext -Tenant $AzureContext.Tenant -SubscriptionId $AzureContext.Subscription -DefaultProfile $AzureContext | Out-Null
 		}
 		default {
 			Write-Log "Using current user credentials"
-			Get-AzContext | Format-List
 		}
 	}
+
+	# Log Azure Context
+	Get-AzContext | Format-List | Out-String -Stream | Where-Object { $_ -notmatch '^\s*$' } | Write-Log '{0}'
 }
 
 #endregion
@@ -123,6 +162,16 @@ function Login-AzureAutomation() {
 ###############################################################################
 
 #region Main
+
+### Setup PowerShell Preferences ##############################################
+
+# Stop on errors
+$Private:SavedVerbosePreference = $ErrorActionPreference
+$ErrorActionPreference = 'Stop'
+
+# Suppress verbose messages
+$Private:SavedVerbosePreference = $VerbosePreference
+$VerbosePreference = 'SilentlyContinue'
 
 ### Open log ##################################################################
 $StartTimestamp = Get-Date
@@ -137,5 +186,13 @@ Login-AzureAutomation
 ### Close log #################################################################
 $StopTimestamp = Get-Date
 Write-Log "### Runbook finished in $($StopTimestamp - $StartTimestamp)"
+
+### Restore PowerShell Preferences ############################################
+
+# Restore $ErrorActionPreference
+$ErrorActionPreference = $Private:SavedVerbosePreference
+
+# Restore $VerbosePreference
+$VerbosePreference = $Private:SavedVerbosePreference
 
 #endregion

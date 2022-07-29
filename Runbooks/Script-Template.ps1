@@ -155,6 +155,31 @@ function Login-AzureAutomation() {
 	Get-AzContext | Format-List | Out-String -Stream -Width 1000 | Where-Object { $_ -notmatch '^\s*$' } | Write-Log '{0}'
 }
 
+### Get-AzToken ###############################################################
+
+# Get an authentication token to access cloud services
+function Get-AzToken {
+	param (
+		[Parameter(Mandatory = $true)]
+		[String]$ResourceUri
+	)
+
+	# Get the current Azure context
+	$AzureContext = Get-AzContext
+
+	# Get Azure authentication token
+	# https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.commands.common.authentication.abstractions.iauthenticationfactory.authenticate
+	[Microsoft.Azure.Commands.Common.Authentication.AzureSession]::Instance.AuthenticationFactory.Authenticate(
+		$AzureContext.Account,
+		$AzureContext.Environment,
+		$AzureContext.Tenant.Id,
+		$null,
+		[Microsoft.Azure.Commands.Common.Authentication.ShowDialog]::Never,
+		$null,
+		$ResourceUri
+	).AccessToken
+}
+
 #endregion
 
 ###############################################################################

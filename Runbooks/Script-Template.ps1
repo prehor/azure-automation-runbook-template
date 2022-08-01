@@ -127,15 +127,15 @@ function Write-Log() {
 	}
 }
 
-### Login-AzureAutomation #####################################################
+### SignInTo-AzAzureAutomation ################################################
 
-# Login in to Azure Active Directory
-function Login-AzureAutomation() {
-	Write-Log "### Sign in to Azure Active Directory"
+# Sign in to Azure Automation account
+function SignInTo-AzAzureAutomation() {
+	Write-Log "### Sign in to Azure Automation Account"
 
 	switch ($Env:POWERSHELL_DISTRIBUTION_CHANNEL) {
 		'AzureAutomation' {
-			Write-Log "Sign in with system managed identity"
+			Write-Log "Sign in with Azure Automation managed identity"
 
 			# Ensure that you do not inherit an AzContext
 			Disable-AzContextAutosave -Scope Process | Out-Null
@@ -150,16 +150,25 @@ function Login-AzureAutomation() {
 			Write-Log "Using current user credentials"
 		}
 	}
+
+	# Log Azure Context
+	Get-AzContext |
+	Format-List |
+	Out-String -Stream -Width 1000 |
+	Where-Object { $_ -notmatch '^\s*$' } |
+	Write-Log '{0}'
 }
 
 ### Get-AzToken ###############################################################
 
 # Get an authentication token to access cloud services
-function Get-AzToken {
+function Get-AzToken() {
 	param (
 		[Parameter(Mandatory = $true)]
 		[String]$ResourceUri
 	)
+
+	Write-Log "### Get Azure Authentication Token for $($ResourceUri)"
 
 	# Get the current Azure context
 	$AzureContext = Get-AzContext
@@ -203,15 +212,8 @@ Write-Log "### Runbook started at $(Get-Date -Format 's')Z"
 
 ### Sign in to cloud services #################################################
 
-# Sign in to Azure
-Login-AzureAutomation
-
-# Log Azure Context
-Get-AzContext |
-Format-List |
-Out-String -Stream -Width 1000 |
-Where-Object { $_ -notmatch '^\s*$' } |
-Write-Log '{0}'
+# Sign in to Azure Automation account
+SignInTo-AzAzureAutomation
 
 ### Something useful ##########################################################
 

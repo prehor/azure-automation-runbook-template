@@ -58,6 +58,84 @@ $ErrorActionPreference = 'Stop'
 
 #region Functions
 
+### Get-AccessToken ###########################################################
+
+# Get an authentication token to access cloud services
+function Get-AccessToken() {
+	param (
+		[Parameter(Mandatory = $true)]
+		[String]$ResourceUri
+	)
+
+	Write-Log "### Get Azure Authentication Token for $($ResourceUri)"
+
+	# Get the current Azure context
+	$AzureContext = Get-AzContext
+
+	# Get Azure authentication token
+	# https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.commands.common.authentication.abstractions.iauthenticationfactory.authenticate
+	[Microsoft.Azure.Commands.Common.Authentication.AzureSession]::Instance.AuthenticationFactory.Authenticate(
+		$AzureContext.Account,
+		$AzureContext.Environment,
+		$AzureContext.Tenant.Id,
+		$null,
+		[Microsoft.Azure.Commands.Common.Authentication.ShowDialog]::Never,
+		$null,
+		$ResourceUri
+	).AccessToken
+}
+
+### SignInTo-AzureAutomation ##################################################
+
+# Sign in to Azure Automation account
+function SignInTo-AzureAutomation() {
+	Write-Log "### Sign in to Azure Automation Account"
+
+	switch ($Env:POWERSHELL_DISTRIBUTION_CHANNEL) {
+		'AzureAutomation' {
+			Write-Log "Sign in with Azure Automation managed identity"
+
+			# Ensure that you do not inherit an AzContext
+			Disable-AzContextAutosave -Scope Process | Out-Null
+
+			# Connect using a Managed Service Identity
+			$AzureContext = (Connect-AzAccount -Identity).Context
+
+			# Set and store context
+			Set-AzContext -Tenant $AzureContext.Tenant -SubscriptionId $AzureContext.Subscription -DefaultProfile $AzureContext | Out-Null
+		}
+		default {
+			Write-Log "Using current user credentials"
+		}
+	}
+
+	# Log Azure Context
+	Get-AzContext |
+	Format-List |
+	Out-String -Stream -Width 1000 |
+	Where-Object { $_ -notmatch '^\s*$' } |
+	Write-Log '{0}'
+}
+
+### SignInTo-MicrosoftGraph ###################################################
+
+### Sign in to Microsoft Graph
+function SignInTo-MicrosoftGraph() {
+	# Get authentication token
+	$AccessToken = Get-AccessToken -ResourceUri 'https://graph.microsoft.com/'
+
+	Write-Log "### Sign in to Microsoft Graph"
+	Connect-MgGraph -AccessToken $AccessToken |
+	Write-Log '{0}'
+
+	# Log Microsoft Graph Context
+	Get-MgContext |
+	Format-List |
+	Out-String -Stream -Width 1000 |
+	Where-Object { $_ -notmatch '^\s*$' } |
+	Write-Log '{0}'
+}
+
 ### Write-Log #################################################################
 
 # Write formatted log message
@@ -125,84 +203,6 @@ function Write-Log() {
 		# Restore $VerbosePreference
 		$VerbosePreference = $Private:SavedVerbosePreference
 	}
-}
-
-### SignInTo-AzureAutomation ##################################################
-
-# Sign in to Azure Automation account
-function SignInTo-AzureAutomation() {
-	Write-Log "### Sign in to Azure Automation Account"
-
-	switch ($Env:POWERSHELL_DISTRIBUTION_CHANNEL) {
-		'AzureAutomation' {
-			Write-Log "Sign in with Azure Automation managed identity"
-
-			# Ensure that you do not inherit an AzContext
-			Disable-AzContextAutosave -Scope Process | Out-Null
-
-			# Connect using a Managed Service Identity
-			$AzureContext = (Connect-AzAccount -Identity).Context
-
-			# Set and store context
-			Set-AzContext -Tenant $AzureContext.Tenant -SubscriptionId $AzureContext.Subscription -DefaultProfile $AzureContext | Out-Null
-		}
-		default {
-			Write-Log "Using current user credentials"
-		}
-	}
-
-	# Log Azure Context
-	Get-AzContext |
-	Format-List |
-	Out-String -Stream -Width 1000 |
-	Where-Object { $_ -notmatch '^\s*$' } |
-	Write-Log '{0}'
-}
-
-### SignInTo-MicrosoftGraph ###################################################
-
-### Sign in to Microsoft Graph
-function SignInTo-MicrosoftGraph() {
-	# Get authentication token
-	$AccessToken = Get-AccessToken -ResourceUri 'https://graph.microsoft.com/'
-
-	Write-Log "### Sign in to Microsoft Graph"
-	Connect-MgGraph -AccessToken $AccessToken |
-	Write-Log '{0}'
-
-	# Log Microsoft Graph Context
-	Get-MgContext |
-	Format-List |
-	Out-String -Stream -Width 1000 |
-	Where-Object { $_ -notmatch '^\s*$' } |
-	Write-Log '{0}'
-}
-
-### Get-AccessToken ###############################################################
-
-# Get an authentication token to access cloud services
-function Get-AccessToken() {
-	param (
-		[Parameter(Mandatory = $true)]
-		[String]$ResourceUri
-	)
-
-	Write-Log "### Get Azure Authentication Token for $($ResourceUri)"
-
-	# Get the current Azure context
-	$AzureContext = Get-AzContext
-
-	# Get Azure authentication token
-	# https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.commands.common.authentication.abstractions.iauthenticationfactory.authenticate
-	[Microsoft.Azure.Commands.Common.Authentication.AzureSession]::Instance.AuthenticationFactory.Authenticate(
-		$AzureContext.Account,
-		$AzureContext.Environment,
-		$AzureContext.Tenant.Id,
-		$null,
-		[Microsoft.Azure.Commands.Common.Authentication.ShowDialog]::Never,
-		$null,
-		$ResourceUri
-	).AccessToken
 }
 
 #endregion

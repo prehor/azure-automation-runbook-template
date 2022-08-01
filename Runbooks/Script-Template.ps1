@@ -234,6 +234,9 @@ Write-Log "### Runbook started at $(Get-Date -Format 's')Z"
 # Sign in to Azure Automation account
 SignInTo-AzureAutomation
 
+# Sign in to Microsoft Graph
+SignInTo-MicrosoftGraph
+
 ### Something useful ##########################################################
 
 # TODO: Put some useful stuff here

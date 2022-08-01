@@ -164,10 +164,10 @@ function SignInTo-AzureAutomation() {
 ### Sign in to Microsoft Graph
 function SignInTo-MicrosoftGraph() {
 	# Get authentication token
-	$AzToken = Get-AzToken -ResourceUri 'https://graph.microsoft.com/'
+	$AccessToken = Get-AccessToken -ResourceUri 'https://graph.microsoft.com/'
 
 	Write-Log "### Sign in to Microsoft Graph"
-	Connect-MgGraph -AccessToken $AzToken |
+	Connect-MgGraph -AccessToken $AccessToken |
 	Write-Log '{0}'
 
 	# Log Microsoft Graph Context
@@ -178,10 +178,10 @@ function SignInTo-MicrosoftGraph() {
 	Write-Log '{0}'
 }
 
-### Get-AzToken ###############################################################
+### Get-AccessToken ###############################################################
 
 # Get an authentication token to access cloud services
-function Get-AzToken() {
+function Get-AccessToken() {
 	param (
 		[Parameter(Mandatory = $true)]
 		[String]$ResourceUri

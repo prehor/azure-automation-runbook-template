@@ -159,6 +159,25 @@ function SignInTo-AzAzureAutomation() {
 	Write-Log '{0}'
 }
 
+### SignInTo-MicrosoftGraph ###################################################
+
+### Sign in to Microsoft Graph
+function SignInTo-MicrosoftGraph() {
+	# Get authentication token
+	$AzToken = Get-AzToken -ResourceUri 'https://graph.microsoft.com/'
+
+	Write-Log "### Sign in to Microsoft Graph"
+	Connect-MgGraph -AccessToken $AzToken |
+	Write-Log '{0}'
+
+	# Log Microsoft Graph Context
+	Get-MgContext |
+	Format-List |
+	Out-String -Stream -Width 1000 |
+	Where-Object { $_ -notmatch '^\s*$' } |
+	Write-Log '{0}'
+}
+
 ### Get-AzToken ###############################################################
 
 # Get an authentication token to access cloud services

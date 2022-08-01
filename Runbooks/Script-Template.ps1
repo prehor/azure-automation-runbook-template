@@ -150,9 +150,6 @@ function Login-AzureAutomation() {
 			Write-Log "Using current user credentials"
 		}
 	}
-
-	# Log Azure Context
-	Get-AzContext | Format-List | Out-String -Stream -Width 1000 | Where-Object { $_ -notmatch '^\s*$' } | Write-Log '{0}'
 }
 
 ### Get-AzToken ###############################################################
@@ -199,16 +196,30 @@ $Private:SavedVerbosePreference = $VerbosePreference
 $VerbosePreference = 'SilentlyContinue'
 
 ### Open log ##################################################################
+
+# Log start time
 $StartTimestamp = Get-Date
 Write-Log "### Runbook started at $(Get-Date -Format 's')Z"
 
-### Sign in to Azure ##########################################################
+### Sign in to cloud services #################################################
+
+# Sign in to Azure
 Login-AzureAutomation
 
+# Log Azure Context
+Get-AzContext |
+Format-List |
+Out-String -Stream -Width 1000 |
+Where-Object { $_ -notmatch '^\s*$' } |
+Write-Log '{0}'
+
 ### Something useful ##########################################################
+
 # TODO: Put some useful stuff here
 
 ### Close log #################################################################
+
+# Log duration
 $StopTimestamp = Get-Date
 Write-Log "### Runbook finished in $($StopTimestamp - $StartTimestamp)"
 

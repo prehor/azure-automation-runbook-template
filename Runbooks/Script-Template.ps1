@@ -127,10 +127,10 @@ function Write-Log() {
 	}
 }
 
-### SignInTo-AzAzureAutomation ################################################
+### SignInTo-AzureAutomation ##################################################
 
 # Sign in to Azure Automation account
-function SignInTo-AzAzureAutomation() {
+function SignInTo-AzureAutomation() {
 	Write-Log "### Sign in to Azure Automation Account"
 
 	switch ($Env:POWERSHELL_DISTRIBUTION_CHANNEL) {
@@ -232,7 +232,7 @@ Write-Log "### Runbook started at $(Get-Date -Format 's')Z"
 ### Sign in to cloud services #################################################
 
 # Sign in to Azure Automation account
-SignInTo-AzAzureAutomation
+SignInTo-AzureAutomation
 
 ### Something useful ##########################################################
 

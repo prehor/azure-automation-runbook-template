@@ -32,7 +32,7 @@ https://github.com/prehor/AzureAutomationRunbookTemplate
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseApprovedVerbs", "")]
 [CmdletBinding()]
 param (
-	[Parameter(Mandatory = $true)]
+	[Parameter(Mandatory)]
 	[String]$Example
 )
 
@@ -63,7 +63,7 @@ $ErrorActionPreference = 'Stop'
 # Get an authentication token to access cloud services
 function Get-AccessToken() {
 	param (
-		[Parameter(Mandatory = $true)]
+		[Parameter(Mandatory)]
 		[String]$ResourceUri
 	)
 

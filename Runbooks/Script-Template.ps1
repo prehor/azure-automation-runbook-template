@@ -105,7 +105,7 @@ function SignInTo-AzureAutomation() {
 			Set-AzContext -Tenant $AzureContext.Tenant -SubscriptionId $AzureContext.Subscription -DefaultProfile $AzureContext | Out-Null
 		}
 		default {
-			Write-Log "Using current user credentials"
+			Write-Log "Using current user connection"
 		}
 	}
 
@@ -121,12 +121,30 @@ function SignInTo-AzureAutomation() {
 
 ### Sign in to Microsoft Graph
 function SignInTo-MicrosoftGraph() {
-	# Get authentication token
-	$AccessToken = Get-AccessToken -ResourceUri 'https://graph.microsoft.com/'
+	param(
+		[Parameter()]
+		[String]$Version
+	)
 
 	Write-Log "### Sign in to Microsoft Graph"
-	Connect-MgGraph -AccessToken $AccessToken |
-	Write-Log '{0}'
+
+	# Switch to required Microsoft Graph version
+	if ($Version) {
+		Write-Log "Switching to Microsoft Graph $($Version) API"
+		Select-MgProfile -Name $Version
+	}
+
+	# Sign in to Microsoft Graph
+	switch ($Env:POWERSHELL_DISTRIBUTION_CHANNEL) {
+		'AzureAutomation' {
+			$AccessToken = (Get-AzAccessToken -ResourceUrl 'https://graph.microsoft.com/').Token
+			Connect-MgGraph -AccessToken $AccessToken |
+			Write-Log '{0}'
+		}
+		default {
+			Write-Log "Using current user connection"
+		}
+	}
 
 	# Log Microsoft Graph Context
 	Get-MgContext |

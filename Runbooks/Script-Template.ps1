@@ -92,14 +92,16 @@ function SignInTo-AzureAutomation() {
 function SignInTo-MicrosoftGraph() {
 	param(
 		[Parameter()]
-		[String]$Version
+		[ValidateNotNullOrEmpty()]
+		[String]$Version = 'v1.0'
 	)
 
 	Write-Log "### Sign in to Microsoft Graph"
 
 	# Switch to required Microsoft Graph version
-	if ($Version) {
-		Write-Log "Switching to Microsoft Graph $($Version) API"
+	$CurrentVersion = (Get-MgProfile).Name
+	if ($CurrentVersion -ne $Version) {
+		Write-Log "Switching to Microsoft Graph API $($Version)"
 		Select-MgProfile -Name $Version
 	} else {
 		Write-Log "Using Microsoft Graph API $($Version)"

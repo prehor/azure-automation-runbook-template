@@ -101,6 +101,8 @@ function SignInTo-MicrosoftGraph() {
 	if ($Version) {
 		Write-Log "Switching to Microsoft Graph $($Version) API"
 		Select-MgProfile -Name $Version
+	} else {
+		Write-Log "Using Microsoft Graph API $($Version)"
 	}
 
 	# Sign in to Microsoft Graph

@@ -74,7 +74,7 @@ function SignInTo-AzureAutomation() {
 			# Ensure that you do not inherit an AzContext
 			Disable-AzContextAutosave -Scope Process | Out-Null
 
-			# Connect using a Managed Service Identity
+			# Connect using a Managed Identity
 			$AzureContext = (Connect-AzAccount -Identity).Context
 
 			# Set and store context
@@ -101,8 +101,10 @@ function SignInTo-MicrosoftGraph() {
 	# Sign in to Microsoft Graph
 	switch ($Env:POWERSHELL_DISTRIBUTION_CHANNEL) {
 		'AzureAutomation' {
-			$AccessToken = (Get-AzAccessToken -ResourceUrl 'https://graph.microsoft.com/').Token
-			Connect-MgGraph -AccessToken $AccessToken |
+			Write-Log "Sign in with Azure Automation managed identity"
+
+			# Connect using a Managed Identity
+			Connect-MgGraph -Identity |
 			Write-Log
 		}
 		default {

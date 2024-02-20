@@ -62,6 +62,9 @@ $ErrorActionPreference = 'Stop'
 
 # Sign in to Azure Automation account
 function SignInTo-AzureAutomation() {
+	[CmdletBinding()]
+	param ()
+
 	Write-Log "### Sign in to Azure Automation Account"
 
 	switch ($Env:POWERSHELL_DISTRIBUTION_CHANNEL) {
@@ -90,22 +93,10 @@ function SignInTo-AzureAutomation() {
 
 ### Sign in to Microsoft Graph
 function SignInTo-MicrosoftGraph() {
-	param(
-		[Parameter()]
-		[ValidateNotNullOrEmpty()]
-		[String]$Version = 'v1.0'
-	)
+	[CmdletBinding()]
+	param ()
 
 	Write-Log "### Sign in to Microsoft Graph"
-
-	# Switch to required Microsoft Graph version
-	$CurrentVersion = (Get-MgProfile).Name
-	if ($CurrentVersion -ne $Version) {
-		Write-Log "Switching to Microsoft Graph API $($Version)"
-		Select-MgProfile -Name $Version
-	} else {
-		Write-Log "Using Microsoft Graph API $($Version)"
-	}
 
 	# Sign in to Microsoft Graph
 	switch ($Env:POWERSHELL_DISTRIBUTION_CHANNEL) {

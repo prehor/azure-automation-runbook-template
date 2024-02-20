@@ -1,10 +1,10 @@
-# Azure Automation Runbook Template
+# Azure Automation PowerShell Runbook Template
 
-Azure Automation PowerShell Runbook template repository.
+Welcome to Azure Automation PowerShell Runbook template.
 
 ## Usage
 
-Copy this repository to the new Azure Automation PowerShell Runbook repository.
+Create a new repository by clicking the big green "Use this template" button at the top of this page.
 
 ## Reporting Issues
 
@@ -13,7 +13,6 @@ Issues can be reported by using [GitHub Issues](/../../issues).
 Full details on how to report issues can be found in the [Contribution Guidelines](CONTRIBUTING.md).
 
 ## Contributing
-
 
 Please read the [Contribution Guidelines](CONTRIBUTING.md), and ensure you are signing all your commits with [DCO sign-off](CONTRIBUTING.md#developer-certification-of-origin-dco).
 
